@@ -32,8 +32,24 @@ function main() {
 
         base_image = new Image();
         base_image.src = src;
+        base_image.crossOrigin = "Anonymous";
         base_image.onload = function () {
             context.drawImage(base_image, 0, 0);
+
+            // Get the CanvasPixelArray from the given coordinates and dimensions.
+            var imgd = context.getImageData(0, 0, 256, 256);
+            var pix = imgd.data;
+    
+            // Loop over each pixel and invert the color.
+            for (var i = 0, n = pix.length; i < n; i += 4) {
+                pix[i] = 255 - pix[i]; // red
+                pix[i + 1] = 255 - pix[i + 1]; // green
+                pix[i + 2] = 255 - pix[i + 2]; // blue
+                // i+3 is alpha (the fourth element)
+            }
+    
+            // Draw the ImageData at the given (x,y) coordinates.
+            context.putImageData(imgd, 0, 0);
         }
     }
 
