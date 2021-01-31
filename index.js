@@ -19,3 +19,4 @@ function main() {
 }
 
 main();
+console.log(pointToTile(95.048299,41.254617 , 14));
