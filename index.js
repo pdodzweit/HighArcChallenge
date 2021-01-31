@@ -10,7 +10,7 @@ init();
 function init() {
 
     var hiddenCanvas = document.getElementById('hiddenCanvas');
-    hiddenCanvas.style.display="none";
+    hiddenCanvas.style.display = "none";
 
     var width = 500;
     var height = 500;
@@ -22,13 +22,23 @@ function init() {
     scene = new THREE.Scene();
 
     geometry = new THREE.PlaneGeometry(width / 2, width / 2, 255, 255);
-    material = new THREE.MeshStandardMaterial();
+    //material = new THREE.MeshStandardMaterial();
+    let uniforms = {
+        colorB: {type: 'vec3', value: new THREE.Color(0xACB6E5)},
+        colorA: {type: 'vec3', value: new THREE.Color(0x74ebd5)}
+    }
+    
+    let material =  new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        fragmentShader: fragmentShader(),
+        vertexShader: vertexShader(),
+      })
 
     mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
-    scene.add( directionalLight );
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    scene.add(directionalLight);
 
     mesh.rotation.x = -Math.PI / 4;
 
@@ -77,29 +87,29 @@ function getTerrainImage() {
         var positionAttribute = geometry.attributes.position;
 
         var averageZ = 0.0;
-		
-		for( var i = 0; i < positionAttribute.count; i ++ ) {
 
-            var R = 255 - pix[i*4]; 
-            var G = 255 - pix[i*4 + 1]; 
-            var B = 255 - pix[i*4 + 2]; 
-            
+        for (var i = 0; i < positionAttribute.count; i++) {
+
+            var R = 255 - pix[i * 4];
+            var G = 255 - pix[i * 4 + 1];
+            var B = 255 - pix[i * 4 + 2];
+
             // formula from https://docs.mapbox.com/help/troubleshooting/access-elevation-data/
-            // but negated.  Asuming the negation was required because the mesh z-axis is flipped from trying to orient it
-            var z = -( -10000 + ((R * 256 * 256 + G * 256 + B) * 0.1) ) * 0.001;
+            // but negated.  Assuming the negation was required because the mesh z-axis is flipped from trying to orient it
+            var z = -(-10000 + ((R * 256 * 256 + G * 256 + B) * 0.1)) * 0.001;
             averageZ += z;
-			
-            positionAttribute.setZ( i, z );
+
+            positionAttribute.setZ(i, z);
         }
 
         averageZ /= positionAttribute.count;
-		
-		for( var i = 0; i < positionAttribute.count; i ++ ) {
 
-            var z = positionAttribute.getZ( i );
+        for (var i = 0; i < positionAttribute.count; i++) {
+
+            var z = positionAttribute.getZ(i);
             z -= averageZ;
-			
-            positionAttribute.setZ( i,z );
+
+            positionAttribute.setZ(i, z);
         }
 
         geometry.computeVertexNormals()
@@ -107,4 +117,29 @@ function getTerrainImage() {
 
         geometry.attributes.position.needsUpdate = true;
     }
+}
+
+function vertexShader() {
+    return `
+      varying float z; 
+  
+      void main() {
+        z = position.z; 
+  
+        vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * modelViewPosition; 
+      }
+    `
+}
+
+function fragmentShader() {
+    return `
+  uniform vec3 colorA; 
+  uniform vec3 colorB; 
+  varying float z;
+
+  void main() {
+    gl_FragColor = vec4(mix(colorA, colorB, z), 1.0);
+  }
+`
 }
