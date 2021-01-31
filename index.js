@@ -18,7 +18,14 @@ function main() {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     document.getElementById('btn').onclick = function () {
-        src = 'https://api.mapbox.com/v4/mapbox.terrain-rgb/14/12558/6127.pngraw?access_token=pk.eyJ1IjoicGRvZHp3ZWl0IiwiYSI6ImNra2tjY3dqMDBzODIycHFudHB5c3J0eDgifQ.jKlnMzp8nL4zySUnrQ-vKg';
+        zoom = document.getElementById('zoom').value;
+        lat = document.getElementById('lat').value
+        lon = document.getElementById('lon').value
+
+        tiles = pointToTile( lon, lat, zoom )
+        console.log( tiles )
+
+        src = 'https://api.mapbox.com/v4/mapbox.terrain-rgb/' + String( zoom ) + '/' + String(tiles[0]) + '/' + String(tiles[1]) + '.pngraw?access_token=pk.eyJ1IjoicGRvZHp3ZWl0IiwiYSI6ImNra2tjY3dqMDBzODIycHFudHB5c3J0eDgifQ.jKlnMzp8nL4zySUnrQ-vKg';
         img = document.getElementById('hiddenImg');
         img.src = src;
     }
