@@ -16,7 +16,14 @@ function main() {
     gl.clearColor(1.0, 1.0, 0.0, 1.0);
     // Clear the color buffer with specified clear color
     gl.clear(gl.COLOR_BUFFER_BIT);
+
+    document.getElementById('btn').onclick = function () {
+        src = 'https://api.mapbox.com/v4/mapbox.terrain-rgb/14/12558/6127.pngraw?access_token=pk.eyJ1IjoicGRvZHp3ZWl0IiwiYSI6ImNra2tjY3dqMDBzODIycHFudHB5c3J0eDgifQ.jKlnMzp8nL4zySUnrQ-vKg';
+        img = document.getElementById('hiddenImg');
+        img.src = src;
+    }
+
 }
 
+
 main();
-console.log(pointToTile(95.048299,41.254617 , 14));

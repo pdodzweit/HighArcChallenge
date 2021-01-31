@@ -11,14 +11,15 @@
 
   <body>
     <canvas id="glcanvas" width="640" height="480"></canvas>
-    <form action="/action_page.php">
+    <form >
       <label for="lat">Lat:</label>
       <input type="text" id="lat" name="lat"><br><br>
       <label for="Lon">Lon:</label>
       <input type="text" id="lon" name="lon"><br><br>
       <label for="zoom">Zoom:</label>
       <input type="text" id="zoom" name="zoom"><br><br>
-      <input type="submit" value="Submit">
+      <input type="button" id="btn" value="GO" />
     </form>
+    <img id="hiddenImg" />
   </body>
 </html>
