@@ -1,19 +1,19 @@
 
 function getTerrainImage() {
     document.getElementById('btn').onclick = function () {
-        zoom = document.getElementById('zoom').value;
-        lat = document.getElementById('lat').value
-        lon = document.getElementById('lon').value
+        var zoom = document.getElementById('zoom').value;
+        var lat = document.getElementById('lat').value
+        var lon = document.getElementById('lon').value
 
-        tiles = pointToTile(lon, lat, zoom)
+        var tiles = pointToTile(lon, lat, zoom)
         console.log(tiles)
 
-        src = 'https://api.mapbox.com/v4/mapbox.terrain-rgb/' + String(zoom) + '/' + String(tiles[0]) + '/' + String(tiles[1]) + '.pngraw?access_token=pk.eyJ1IjoicGRvZHp3ZWl0IiwiYSI6ImNra2tjY3dqMDBzODIycHFudHB5c3J0eDgifQ.jKlnMzp8nL4zySUnrQ-vKg';
+        var src = 'https://api.mapbox.com/v4/mapbox.terrain-rgb/' + String(zoom) + '/' + String(tiles[0]) + '/' + String(tiles[1]) + '.pngraw?access_token=pk.eyJ1IjoicGRvZHp3ZWl0IiwiYSI6ImNra2tjY3dqMDBzODIycHFudHB5c3J0eDgifQ.jKlnMzp8nL4zySUnrQ-vKg';
 
         var canvas = document.getElementById('hiddenCanvas'),
             context = canvas.getContext('2d');
 
-        base_image = new Image();
+        var base_image = new Image();
         base_image.src = src;
         base_image.crossOrigin = "Anonymous";
         base_image.onload = function () {
@@ -37,81 +37,41 @@ function getTerrainImage() {
     }
 }
 
-function main() {
-    const canvas = document.querySelector('#glcanvas');
-    const gl = canvas.getContext('webgl');
+import * as THREE from './three.js/build/three.module.js';
 
-    if (!gl) {
-        alert('Unable to initialize WebGL. Your browser or machine may not support it.');
-        return;
-    }
+let camera, scene, renderer;
+let geometry, material, mesh;
 
-    var vertices = [
-        -0.5, 0.0, 0.5,
-        -0.5, 0.0, -0.5,
-        0.5, 0.0, -0.5,
-        0.5, 0.0, 0.5
-    ];
+init();
 
-    indices = [3, 2, 1, 3, 1, 0];
+function init() {
 
-    // Create an empty buffer object to store vertex buffer
-    var vertex_buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+	camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.01, 10 );
+	camera.position.z = 1;
 
-    var Index_Buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, Index_Buffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+	scene = new THREE.Scene();
 
-    /*====================== Shaders =======================*/
+	geometry = new THREE.BoxGeometry( 0.2, 0.2, 0.2 );
+	material = new THREE.MeshNormalMaterial();
 
-    // Vertex shader source code
-    var vertCode =
-        'attribute vec3 coordinates;' +
-        'void main(void) {' +
-        ' gl_Position = vec4(coordinates, 1.0);' +
-        '}';
+	mesh = new THREE.Mesh( geometry, material );
+	scene.add( mesh );
 
-    var vertShader = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vertShader, vertCode);
-    gl.compileShader(vertShader);
 
-    // Fragment shader source code
-    var fragCode =
-        'void main(void) {' +
-        ' gl_FragColor = vec4(1.0, 0.0, 0.0, 0.1);' +
-        '}';
-
-    // Create fragment shader object 
-    var fragShader = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(fragShader, fragCode);
-    gl.compileShader(fragShader);
-    var shaderProgram = gl.createProgram();
-    gl.attachShader(shaderProgram, vertShader);
-    gl.attachShader(shaderProgram, fragShader);
-    gl.linkProgram(shaderProgram);
-    gl.useProgram(shaderProgram);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, Index_Buffer);
-
-    var coord = gl.getAttribLocation(shaderProgram, "coordinates");
-
-    gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(coord);
-
-    gl.clearColor(0.5, 0.5, 0.5, 0.9);
-    gl.enable(gl.DEPTH_TEST);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
-
+    var canvasElm = document.getElementById('canvas');
+    renderer = new THREE.WebGLRenderer( { canvas: canvasElm, antialias: true } );
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setAnimationLoop( animation );
+    
     getTerrainImage();
 
 }
 
+function animation( time ) {
 
-main();
+	mesh.rotation.x = time / 2000;
+	mesh.rotation.y = time / 1000;
+
+	renderer.render( scene, camera );
+
+}
