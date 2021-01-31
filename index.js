@@ -50,7 +50,6 @@ function getTerrainImage() {
     var lon = document.getElementById('lon').value
 
     var tiles = pointToTile(lon, lat, zoom)
-    console.log(tiles)
 
     var src = 'https://api.mapbox.com/v4/mapbox.terrain-rgb/' + String(zoom) + '/' + String(tiles[0]) + '/' + String(tiles[1]) + '.pngraw?access_token=pk.eyJ1IjoicGRvZHp3ZWl0IiwiYSI6ImNra2tjY3dqMDBzODIycHFudHB5c3J0eDgifQ.jKlnMzp8nL4zySUnrQ-vKg';
 
@@ -67,31 +66,32 @@ function getTerrainImage() {
         var imgd = context.getImageData(0, 0, 256, 256);
         var pix = imgd.data;
 
-        // Loop over each pixel and invert the color.
-        for (var i = 0, n = pix.length; i < n; i += 4) {
-            pix[i] = 255 - pix[i]; // red
-            pix[i + 1] = 255 - pix[i + 1]; // green
-            pix[i + 2] = 255 - pix[i + 2]; // blue
-            // i+3 is alpha (the fourth element)
+        var positionAttribute = geometry.attributes.position;
+
+        var averageZ = 0.0;
+		
+		for( var i = 0; i < positionAttribute.count; i ++ ) {
+
+            var R = 255 - pix[i*4]; 
+            var G = 255 - pix[i*4 + 1]; 
+            var B = 255 - pix[i*4 + 2]; 
+            
+            var z = ( -10000 + ((R * 256 * 256 + G * 256 + B) * 0.1) ) * 0.005;
+            averageZ += z;
+			
+            positionAttribute.setZ( i,z );
         }
 
-        // Draw the ImageData at the given (x,y) coordinates.
-        context.putImageData(imgd, 0, 0);
-
-        var positionAttribute = geometry.attributes.position;
+        averageZ /= positionAttribute.count;
 		
 		for( var i = 0; i < positionAttribute.count; i ++ ) {
 
             var z = positionAttribute.getZ( i );
-            
-            var R = 255 - pix[i*4]; 
-            var G = 255 - pix[i*4 + 1]; 
-            var B = 255 - pix[i*4 + 2]; 
-			
-            z += ( -10000 + ((R * 256 * 256 + G * 256 + B) * 0.1) ) * 0.005;
+            z -= averageZ;
 			
             positionAttribute.setZ( i,z );
         }
+
 
         geometry.attributes.position.needsUpdate = true;
     }
