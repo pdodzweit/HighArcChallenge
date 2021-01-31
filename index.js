@@ -22,12 +22,19 @@ function main() {
         lat = document.getElementById('lat').value
         lon = document.getElementById('lon').value
 
-        tiles = pointToTile( lon, lat, zoom )
-        console.log( tiles )
+        tiles = pointToTile(lon, lat, zoom)
+        console.log(tiles)
 
-        src = 'https://api.mapbox.com/v4/mapbox.terrain-rgb/' + String( zoom ) + '/' + String(tiles[0]) + '/' + String(tiles[1]) + '.pngraw?access_token=pk.eyJ1IjoicGRvZHp3ZWl0IiwiYSI6ImNra2tjY3dqMDBzODIycHFudHB5c3J0eDgifQ.jKlnMzp8nL4zySUnrQ-vKg';
-        img = document.getElementById('hiddenImg');
-        img.src = src;
+        src = 'https://api.mapbox.com/v4/mapbox.terrain-rgb/' + String(zoom) + '/' + String(tiles[0]) + '/' + String(tiles[1]) + '.pngraw?access_token=pk.eyJ1IjoicGRvZHp3ZWl0IiwiYSI6ImNra2tjY3dqMDBzODIycHFudHB5c3J0eDgifQ.jKlnMzp8nL4zySUnrQ-vKg';
+
+        var canvas = document.getElementById('hiddenCanvas'),
+            context = canvas.getContext('2d');
+
+        base_image = new Image();
+        base_image.src = src;
+        base_image.onload = function () {
+            context.drawImage(base_image, 0, 0);
+        }
     }
 
 }
