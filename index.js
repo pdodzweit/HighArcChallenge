@@ -9,18 +9,26 @@ init();
 
 function init() {
 
+    var hiddenCanvas = document.getElementById('hiddenCanvas');
+    hiddenCanvas.style.display="none";
+
     var width = 500;
     var height = 500;
+    // use orthographic for "God mode" appearance
     camera = new THREE.OrthographicCamera(width / - 2, width / 2, height / 2, height / - 2, -2000, 2000);
-    camera.position.z = 1;
+    camera.position.z = 0;
+    camera.position.y = 10;
 
     scene = new THREE.Scene();
 
     geometry = new THREE.PlaneGeometry(width / 2, width / 2, 255, 255);
-    material = new THREE.MeshNormalMaterial();
+    material = new THREE.MeshStandardMaterial();
 
     mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
+
+    const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+    scene.add( directionalLight );
 
     mesh.rotation.x = -Math.PI / 4;
 
@@ -76,10 +84,12 @@ function getTerrainImage() {
             var G = 255 - pix[i*4 + 1]; 
             var B = 255 - pix[i*4 + 2]; 
             
-            var z = ( -10000 + ((R * 256 * 256 + G * 256 + B) * 0.1) ) * 0.005;
+            // formula from https://docs.mapbox.com/help/troubleshooting/access-elevation-data/
+            // but negated.  Asuming the negation was required because the mesh z-axis is flipped from trying to orient it
+            var z = -( -10000 + ((R * 256 * 256 + G * 256 + B) * 0.1) ) * 0.001;
             averageZ += z;
 			
-            positionAttribute.setZ( i,z );
+            positionAttribute.setZ( i, z );
         }
 
         averageZ /= positionAttribute.count;
@@ -91,6 +101,8 @@ function getTerrainImage() {
 			
             positionAttribute.setZ( i,z );
         }
+
+        geometry.computeVertexNormals()
 
 
         geometry.attributes.position.needsUpdate = true;

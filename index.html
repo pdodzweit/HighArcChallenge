@@ -1,26 +1,46 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="./demo.css" type="text/css">
-    <script src="tilebelt/index.js"></script>
-    <script type="module" async src="index.js"></script>
 
-    <title>HighArc Challenge</title>
-  </head>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="demo.css" type="text/css">
+  <script src="tilebelt/index.js"></script>
+  <script type="module" async src="index.js"></script>
 
-  <body>
-    <canvas id="canvas" width="640" height="480"></canvas>
-    <form >
-      <label for="lat">Lat:</label>
-      <input type="text" id="lat" name="lat" value = "27.987514"><br><br>
-      <label for="Lon">Lon:</label>
-      <input type="text" id="lon" name="lon" value = "86.924203"><br><br>
-      <label for="zoom">Zoom:</label>
-      <input type="text" id="zoom" name="zoom" value = '14'><br><br>
-      <input type="button" id="btn" value="GO" />
-    </form>
-    <canvas id="hiddenCanvas" width="256" height="256">
-    </canvas>
-  </body>
+  <script id="vertexShader" type="x-shader/x-vertex">
+      uniform float time;
+      uniform vec2 resolution;
+      void main()	{
+          gl_Position = vec4( position, 1.0 );
+      }
+  </script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+        uniform float time;
+        uniform vec2 resolution;
+        void main()	{
+            float x = mod(time + gl_FragCoord.x, 20.) < 10. ? 1. : 0.;
+            float y = mod(time + gl_FragCoord.y, 20.) < 10. ? 1. : 0.;
+            gl_FragColor = vec4(vec3(min(x, y)), 1.);
+        }
+    </script>
+
+  <title>HighArc Challenge</title>
+</head>
+
+<body>
+  <canvas id="canvas" width="640" height="480"></canvas>
+  <form>
+    <label for="lat">Lat:</label>
+    <input type="text" id="lat" name="lat" value="27.987514"><br><br>
+    <label for="Lon">Lon:</label>
+    <input type="text" id="lon" name="lon" value="86.924203"><br><br>
+    <label for="zoom">Zoom:</label>
+    <input type="text" id="zoom" name="zoom" value='14'><br><br>
+    <input type="button" id="btn" value="GO" />
+  </form>
+  <canvas id="hiddenCanvas" width="256" height="256">
+  </canvas>
+</body>
+
 </html>
