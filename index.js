@@ -36,7 +36,7 @@ function init() {
     mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
     scene.add(directionalLight);
 
     mesh.rotation.x = -Math.PI / 3;
@@ -227,7 +227,16 @@ function fragmentShader() {
         #include <fog_fragment>
         #include <premultiplied_alpha_fragment>
         #include <dithering_fragment>
-        gl_FragColor *= vec4(mix(vec3(0,1,1), vec3(1,.5,0), z), 1.0);
+        vec3 blue = vec3( 0.05, 0.44, 0.91 );
+        vec3 green = vec3( 0.2, 0.54, 0.07 );
+        vec3 brown = vec3( 0.5, 0.25, 0.07 );
+        vec3 white = vec3( 1.0, 1.0, 1.0 );
+
+        vec3 color = mix(blue, green, smoothstep(0.0, 1.0, z));
+        color = mix(color, brown, smoothstep(1.0, 6.0, z));
+        color = mix(color, white, smoothstep(6.0, 20.0, z));
+
+        gl_FragColor *= vec4(color, 1.0);
     } 
 `
 }
