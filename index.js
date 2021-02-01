@@ -85,7 +85,7 @@ function getTerrainImage() {
 
         var positionAttribute = geometry.attributes.position;
 
-        var averageZ = 0.0;
+        var minZ = 100000000.0;
 
         for (var i = 0; i < positionAttribute.count; i++) {
 
@@ -96,17 +96,18 @@ function getTerrainImage() {
             // formula from https://docs.mapbox.com/help/troubleshooting/access-elevation-data/
             // but negated.  Assuming the negation was required because the mesh z-axis is flipped from trying to orient it
             var z = -(-10000 + ((R * 256 * 256 + G * 256 + B) * 0.1)) * 0.001;
-            averageZ += z;
+            if( z < minZ )
+            {
+                minZ = z;
+            }
 
             positionAttribute.setZ(i, z);
         }
 
-        averageZ /= positionAttribute.count;
-
         for (var i = 0; i < positionAttribute.count; i++) {
 
             var z = positionAttribute.getZ(i);
-            z -= averageZ;
+            z -= minZ;
 
             positionAttribute.setZ(i, z);
         }
