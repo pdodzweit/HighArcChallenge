@@ -21,8 +21,10 @@ function init() {
 
     scene = new THREE.Scene();
 
+    // make a plane with the same number of points as our height image will have
     geometry = new THREE.PlaneGeometry(width / 1.2, width / 1.2, 255, 255);
 
+    // copied the "vertexShader" and "fragShader" out of this guy and modified them below
     var phongShader = THREE.ShaderLib.phong;
 
     var uniforms = THREE.UniformsUtils.clone(phongShader.uniforms);
@@ -41,7 +43,6 @@ function init() {
 
     mesh.rotation.x = -Math.PI / 3;
 
-
     var canvasElm = document.getElementById('canvas');
     renderer = new THREE.WebGLRenderer({ canvas: canvasElm, antialias: true });
     renderer.setSize(width, height);
@@ -53,13 +54,9 @@ function init() {
 }
 
 function animation(time) {
-
     mesh.rotation.z = time / 10000;
-
     renderer.render(scene, camera);
-
 }
-
 
 function getTerrainImage() {
     var zoom = document.getElementById('zoom').value;
@@ -77,28 +74,26 @@ function getTerrainImage() {
     base_image.src = src;
     base_image.crossOrigin = "Anonymous";
     base_image.onload = function () {
-        context.drawImage(base_image, 0, 0);
 
-        // Get the CanvasPixelArray from the given coordinates and dimensions.
+        // need to copy the image into the hidden canvas so we can read the pixels
+        context.drawImage(base_image, 0, 0);
         var imgd = context.getImageData(0, 0, 256, 256);
         var pix = imgd.data;
 
         var positionAttribute = geometry.attributes.position;
 
-        // min and max z values produced by the data after scaling
-        var minZ = -1657.8485;
-        var maxZ = -1651.4775;
+        var maxZ = 8800; // MT everest is 8.8km
+        var minZ = 0; 
         var maxRange = maxZ - minZ;
 
         for (var i = 0; i < positionAttribute.count; i++) {
 
-            var R = 255 - pix[i * 4];
-            var G = 255 - pix[i * 4 + 1];
-            var B = 255 - pix[i * 4 + 2];
+            var R = pix[i * 4];
+            var G = pix[i * 4 + 1];
+            var B = pix[i * 4 + 2];
 
             // formula from https://docs.mapbox.com/help/troubleshooting/access-elevation-data/
-            // but negated.  Assuming the negation was required because the mesh z-axis is flipped from trying to orient it
-            var z = -(-10000 + ((R * 256 * 256 + G * 256 + B) * 0.1)) * 0.001;
+            var z = -10000 + ((R * 256 * 256 + G * 256 + B) * 0.1);
 
             // map z to the range 0 - 20
             z -= minZ;
@@ -107,8 +102,6 @@ function getTerrainImage() {
         }
 
         geometry.computeVertexNormals()
-
-
         geometry.attributes.position.needsUpdate = true;
     }
 }
@@ -117,7 +110,7 @@ function getTerrainImage() {
 function vertexShader() {
     return `
     #define PHONG
-    varying float z;
+    varying float z;       // ADDED THIS 
     varying vec3 vViewPosition;
     #ifndef FLAT_SHADED
         varying vec3 vNormal;
@@ -135,7 +128,7 @@ function vertexShader() {
     #include <logdepthbuf_pars_vertex>
     #include <clipping_planes_pars_vertex>
     void main() {
-        z = position.z;  
+        z = position.z;     // ADDED THIS 
         #include <uv_vertex>
         #include <uv2_vertex>
         #include <color_vertex>
@@ -175,7 +168,7 @@ function fragmentShader() {
     uniform vec3 specular;
     uniform float shininess;
     uniform float opacity;
-    varying float z;
+    varying float z;          // ADDED THIS 
     #include <common>
     #include <packing>
     #include <dithering_pars_fragment>
@@ -227,14 +220,16 @@ function fragmentShader() {
         #include <fog_fragment>
         #include <premultiplied_alpha_fragment>
         #include <dithering_fragment>
+
+        // ADDED FROM HERE ON
         vec3 blue = vec3( 0.05, 0.44, 0.91 );
         vec3 green = vec3( 0.2, 0.54, 0.07 );
         vec3 brown = vec3( 0.5, 0.25, 0.07 );
         vec3 white = vec3( 1.0, 1.0, 1.0 );
 
-        vec3 color = mix(blue, green, smoothstep(0.0, 1.0, z));
-        color = mix(color, brown, smoothstep(1.0, 6.0, z));
-        color = mix(color, white, smoothstep(6.0, 20.0, z));
+        vec3 color = mix(blue,  green, smoothstep(0.0, 0.01, z));
+        color      = mix(color, brown, smoothstep(0.01, 3.0, z));
+        color      = mix(color, white, smoothstep(3.0, 7.0, z));
 
         gl_FragColor *= vec4(color, 1.0);
     } 
